@@ -1,0 +1,43 @@
+main_file (GENERATOR for 'ANLZED_PN')
+
+semantic_rule_list is
+  main DO_THE_WORK(none) return void,
+
+  CREATE_LIST_LOC_TRANS(none) return semantic_tree,
+  CREATE_LIST_COMM_PLACE(none) return semantic_tree,
+  CREATE_LIST_SYNC_TRANS(none) return semantic_tree,
+  CREATE_LIST_STT_PLACE(none) return semantic_tree
+end;
+
+semantic_tree_list is
+  OBJ_SYNC(name : string),
+  OBJ_LOC(name : string),
+  OBJ_STT(name : string),
+  OBJ_COMM(name : string, nb_in_tokens : integer)
+end;
+
+constructor_list is 
+  SY_MAIN,
+
+  SY_LIST_COMM_PLACE,
+  SY_INTERNAL_LIST_COMM_PLACE,
+  SY_COMM_PLACE_VARIABLE_NAME,
+
+  SY_DECLARE_ALL_STT_PLACE,
+  SY_STT_PLACE,
+
+  SY_DECLARE_ALL_LOC_TRANS,
+  SY_LOC_TRANS,
+
+  SY_DECLARE_ALL_SYNC_TRANS,
+  SY_SYNC_TRANS,
+
+  SY_DECLARE_ALL_COMM_PLACE,
+  SY_COMM_PLACE;
+
+global_variables none end;
+
+include_file('rule_tree.mssm');
+include_file('rule_create_list_objects.mssm');
+include_file('rule_do_the_work.mssm');
+

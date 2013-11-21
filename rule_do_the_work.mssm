@@ -1,0 +1,19 @@
+annex_file
+
+semantic_rule DO_THE_WORK(none) return void is
+THE_TREE : semantic_tree;
+begin
+
+  THE_TREE := create_sm_tree ([ SY_MAIN # $atrv_str(attribute name) # ]);
+
+  THE_TREE := add_sm_son($smt(THE_TREE), sm_rule CREATE_LIST_STT_PLACE());
+  THE_TREE := add_sm_son($smt(THE_TREE), sm_rule CREATE_LIST_COMM_PLACE());
+  THE_TREE := add_sm_son($smt(THE_TREE), sm_rule CREATE_LIST_SYNC_TRANS());
+  THE_TREE := add_sm_son($smt(THE_TREE), sm_rule CREATE_LIST_LOC_TRANS());
+
+  generate $smt(THE_TREE) in 'build/anlzed-pn.c';
+
+  message ('Done...');
+  return;
+end;
+

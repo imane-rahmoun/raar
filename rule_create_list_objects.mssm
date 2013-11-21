@@ -1,0 +1,70 @@
+annex_file
+
+semantic_rule CREATE_LIST_STT_PLACE(none) return semantic_tree is
+ret: semantic_tree;
+begin
+  ret := create_sm_tree([ SY_DECLARE_ALL_STT_PLACE # # ]);
+  if nb_node_instance(STT_PLACE) > 0 then
+     for i in 1 .. nb_node_instance(STT_PLACE) do
+        ret := add_sm_son($smt(ret), 
+                  sm_tree OBJ_STT(
+                    name => $atrv_str(attribute name from get_node_reference(STT_PLACE, $int(i)))
+                  )
+                );
+     end for;
+  end if;
+  return $smt(ret);
+end;
+
+
+semantic_rule CREATE_LIST_LOC_TRANS(none) return semantic_tree is
+ret: semantic_tree;
+begin
+  ret := create_sm_tree([ SY_DECLARE_ALL_LOC_TRANS # # ]);
+  if nb_node_instance(LOC_TRANS) > 0 then
+     for i in 1 .. nb_node_instance(LOC_TRANS) do
+        ret := add_sm_son($smt(ret), 
+                  sm_tree OBJ_LOC(
+                    name => $atrv_str(attribute name from get_node_reference(LOC_TRANS, $int(i)))
+                  )
+                );
+     end for;
+  end if;
+  return $smt(ret);
+end;
+
+
+semantic_rule CREATE_LIST_SYNC_TRANS(none) return semantic_tree is
+ret: semantic_tree;
+begin
+  ret := create_sm_tree([ SY_DECLARE_ALL_SYNC_TRANS # # ]);
+  if nb_node_instance(SYNC_TRANS) > 0 then
+     for i in 1 .. nb_node_instance(SYNC_TRANS) do
+        ret := add_sm_son($smt(ret), 
+                  sm_tree OBJ_SYNC(
+                    name => $atrv_str(attribute name from get_node_reference(SYNC_TRANS, $int(i)))
+                  )
+                );
+     end for;
+  end if;
+  return $smt(ret);
+end;
+
+
+semantic_rule CREATE_LIST_COMM_PLACE(none) return semantic_tree is
+ret: semantic_tree;
+begin
+  ret := create_sm_tree([ SY_DECLARE_ALL_COMM_PLACE # # ]);
+  if nb_node_instance(COMM_PLACE) > 0 then
+     for i in 1 .. nb_node_instance(COMM_PLACE) do
+        ret := add_sm_son($smt(ret), 
+                  sm_tree OBJ_COMM(
+                    name => $atrv_str(attribute name from get_node_reference(COMM_PLACE, $int(i))),
+                    nb_in_tokens => $atrv_int(attribute nb_in_tokens from get_node_reference(COMM_PLACE, $int(i)))
+                  )
+                );
+     end for;
+  end if;
+  return $smt(ret);
+end;
+

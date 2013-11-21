@@ -1,0 +1,21 @@
+annex_file
+
+semantic_tree OBJ_SYNC(name : string) is
+  semantic_leaf([ SY_SYNC_TRANS # $str(name) # ])
+end;
+
+semantic_tree OBJ_LOC(name : string) is
+  semantic_leaf([ SY_LOC_TRANS # $str(name) # ])
+end;
+
+semantic_tree OBJ_STT(name : string) is
+  semantic_leaf([ SY_STT_PLACE # $str(name) # ])
+end;
+
+semantic_tree OBJ_COMM(name : string, nb_in_tokens : integer) is
+  semantic_node([ SY_COMM_PLACE # # ] :
+    semantic_leaf([ # $str(name) # ]),
+    semantic_leaf([ # # $int(nb_in_tokens) ])
+  )
+end;
+

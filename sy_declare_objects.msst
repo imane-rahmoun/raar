@@ -1,0 +1,90 @@
+annex_file
+
+// SY_DECLARE_ALL_STT_PLACE: declarations des variables STT
+// apply: SY_STT_PLACE
+syntactic_rule SY_DECLARE_ALL_STT_PLACE is
+begin
+  if $# > 0 then
+    apply($1); // SY_STT_PLACE
+    if $# > 1 then
+      apply SY_DECLARE_ALL_STT_PLACE($2*);
+    end if;
+  end if;
+end;
+
+syntactic_rule SY_STT_PLACE is
+begin
+  put('object_t ');
+  put($str(0));
+  put(' = { .uniqid = uniqid_count++, .name = "');
+  put($str(0));
+  put_line('", .ty = STATE, .size = 0};');
+end;
+
+
+// SY_DECLARE_ALL_LOC_TRANS: declarations des variables LOC
+// apply: SY_LOC_TRANS
+syntactic_rule SY_DECLARE_ALL_LOC_TRANS is
+begin
+  if $# > 0 then
+    apply($1); // SY_LOC_TRANS
+    if $# > 1 then
+      apply SY_DECLARE_ALL_LOC_TRANS($2*);
+    end if;
+  end if;
+end;
+
+syntactic_rule SY_LOC_TRANS is
+begin
+  put('object_t ');
+  put($str(0));
+  put(' = { .uniqid = uniqid_count++, .name = "');
+  put($str(0));
+  put_line('", .ty = LOC_TRANS, .size = 0};');
+end;
+
+
+// SY_DECLARE_ALL_COMM_PLACE: declarations des variables COMM
+// apply: SY_COMM_PLACE
+syntactic_rule SY_DECLARE_ALL_COMM_PLACE is
+begin
+  if $# > 0 then
+    apply($1); // SY_COMM_PLACE
+    if $# > 1 then
+      apply SY_DECLARE_ALL_COMM_PLACE($2*);
+    end if;
+  end if;
+end;
+
+syntactic_rule SY_COMM_PLACE is
+begin
+  put('object_t ');
+  put($str(1));
+  put(' = { .uniqid = uniqid_count++, .name = "');
+  put($str(1));
+  put('", .ty = COMM, .size = 0, .nb_in_tokens = ');
+  put(to_string($int(2)));
+  put_line('};');
+end;
+
+
+// SY_DECLARE_ALL_SYNC_TRANS: declarations des variables SYNC
+// apply: SY_SYNC_TRANS
+syntactic_rule SY_DECLARE_ALL_SYNC_TRANS is
+begin
+  if $# > 0 then
+    apply($1); // SY_SYNC_TRANS
+    if $# > 1 then
+      apply SY_DECLARE_ALL_SYNC_TRANS($2*);
+    end if;
+  end if;
+end;
+
+syntactic_rule SY_SYNC_TRANS is
+begin
+  put('object_t ');
+  put($str(0));
+  put(' = { .uniqid = uniqid_count++, .name = "');
+  put($str(0));
+  put_line('", .ty = SYNC_TRANS, .size = 0};');
+end;

@@ -1,0 +1,31 @@
+annex_file
+
+// SY_LIST_COMM_PLACE: declare la liste en c
+// apply: SY_INTERNAL_LIST_COMM_PLACE
+syntactic_rule SY_LIST_COMM_PLACE is
+begin
+  put('int nb_cp = ');
+  put(to_string($#));
+  put_line(';');
+  put('object_t *list_cp[] = {');
+  apply SY_INTERNAL_LIST_COMM_PLACE($0);
+  put_line('};');
+end;
+
+// apply: SY_COMM_PLACE_VARIABLE_NAME
+syntactic_rule SY_INTERNAL_LIST_COMM_PLACE is
+begin
+  if $# > 0 then
+    apply SY_COMM_PLACE_VARIABLE_NAME($1);
+    if $# > 1 then
+      put(', ');
+      apply SY_INTERNAL_LIST_COMM_PLACE($2*);
+    end if;
+  end if;
+end;
+
+syntactic_rule SY_COMM_PLACE_VARIABLE_NAME is
+begin
+  put('&');
+  put($str(1));
+end;

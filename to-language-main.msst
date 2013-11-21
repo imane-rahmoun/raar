@@ -1,0 +1,65 @@
+main_file
+syntactic_pattern_name TO_LANGUAGE related_to GENERATOR
+
+// SY_MAIN: code de la fonction main
+// apply: SY_DECLARE_ALL_STT_PLACE, SY_DECLARE_ALL_LOC_TRANS, 
+//        SY_DECLARE_ALL_SYNC_TRANS, SY_DECLARE_ALL_COMM_PLACE
+syntactic_rule SY_MAIN is
+begin
+  put_line('#include <stdlib.h>');
+  put_line('#include <stdio.h>');
+  put_line('#include <string.h>');
+  put_line('#include <mpi.h>');
+  put_line('#include "../runtime/runtime.h"');
+  put_line('');
+
+  put_line('int main(int argc, char **argv) {');
+  increase_marging;
+  put_line('int i, j;');
+  put_line('process_t myproc;');
+  put_line('int size, rank;');
+  put_line('');
+  put_line('MPI_Init(&argc, &argv);');
+  put_line('MPI_Comm_rank(MPI_COMM_WORLD, &rank);');
+  put_line('MPI_Comm_size(MPI_COMM_WORLD, &size);');
+  put_line('');
+
+  put_line('if (rank == 0) {');
+  increase_marging;
+  put('printf("name = '); put($str(0)); put_line('\n");');
+  put_line('printf("timestamp = %d\n", time(NULL));');
+  decrease_marging;
+  put_line('}');
+  put_line('srand(time(NULL) + rank);');
+  put_line('');
+  put_line('int uniqid_count = 1;');
+
+  // declarations des objets
+  apply($1); // SY_DECLARE_ALL_STT_PLACE
+  apply($2); // SY_DECLARE_ALL_COMM_PLACE
+  apply($3); // SY_DECLARE_ALL_SYNC_TRANS
+  apply($4); // SY_DECLARE_ALL_LOC_TRANS
+
+  put_line('');
+
+  // liste des COMM_PLACE
+  apply SY_LIST_COMM_PLACE($2);
+
+  put_line('');
+  put_line('// affectation a une instance en fonction du rank MPI');
+  put_line('myproc.rank = rank;');
+  put_line('myproc.name = proc_names[instances[rank-1] - 1];');
+  put_line('myproc.where = start[rank-1];');
+
+  put_line('');
+  put_line('MPI_Barrier(MPI_COMM_WORLD);');
+  put_line('run(&myproc);');
+  put_line('MPI_Finalize();');
+
+  put_line('return 0;');
+  decrease_marging;
+  put_line('}');
+end;
+
+include_file('sy_list_comm_places.msst');
+include_file('sy_declare_objects.msst');
