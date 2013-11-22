@@ -35,28 +35,36 @@ struct object_t {
   object_t *next[MAX_LINKS];
   int size; // size of next
   type_e ty;
-  int nb_in_tokens; // only for COMM
+  int nb_in_tokens; // seulement pour ty = COMM
+  int sync_rank; // seulement pour ty = SYNC, rank du process sync_manager
 };
 
 typedef struct {
+  int proc_number;
   char *name;
-  object_t *where;
-  int rank;
+  object_t *where; // sur quel objet l'instance se trouve
+  int rank; // pas utilisé
+} instance_t;
+
+typedef struct {
+  int proc_number;
+  instance_t instances[MAX_INSTANCES];
+  int nb_instances;
+  char *name;
 } process_t;
 
 typedef struct {
-  int proc_numbers[MAX_PROCESS];
+  process_t proc[MAX_PROCESS];
   int size;
   object_t *o;
 } sync_t;
 
 
 void add_link(object_t *left, object_t *right);
-void place_manager(object_t **list_cp, int nb_cp,
-                   sync_t **list_sync, int nb_sync, 
-                   int *instances, int nb_instances,
-                   int nb_proc, MPI_Comm comm);
-void run(process_t *p);
+void place_manager(object_t **list_cp, int nb_cp, 
+                   int mpi_nb_nodes, MPI_Comm comm);
+void sync_manager(sync_t *sync, int nb_sync, int mpi_nb_nodes, MPI_Comm comm);
+void run(instance_t *p);
 
 #endif
 

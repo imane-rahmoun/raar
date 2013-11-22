@@ -16,12 +16,11 @@ begin
   put_line('int main(int argc, char **argv) {');
   increase_marging;
   put_line('int i, j;');
-  put_line('process_t myproc;');
-  put_line('int size, rank;');
+  put_line('int mpi_nb_nodes, rank;');
   put_line('');
   put_line('MPI_Init(&argc, &argv);');
   put_line('MPI_Comm_rank(MPI_COMM_WORLD, &rank);');
-  put_line('MPI_Comm_size(MPI_COMM_WORLD, &size);');
+  put_line('MPI_Comm_size(MPI_COMM_WORLD, &mpi_nb_nodes);');
   put_line('');
 
   put_line('if (rank == 0) {');
@@ -32,28 +31,63 @@ begin
   put_line('}');
   put_line('srand(time(NULL) + rank);');
   put_line('');
-  put_line('int uniqid_count = 1;');
 
   // declarations des objets
+  put_line('int uniqid_count = 1;');
   apply($1); // SY_DECLARE_ALL_STT_PLACE
   apply($2); // SY_DECLARE_ALL_COMM_PLACE
   apply($3); // SY_DECLARE_ALL_SYNC_TRANS
   apply($4); // SY_DECLARE_ALL_LOC_TRANS
-
   put_line('');
 
-  // liste des COMM_PLACE
+  put_line('int nb_sync = 0; // TODO');
+  put_line('#define NB_PROCESS TODO');
+  put_line('process_t proc[NB_PROCESS] = {');
+  put_line('// TODO');
+  put_line('};');
+  put_line('');
+
+  put_line('if (mpi_nb_nodes != 1 + nb_sync + total_instances) {');
+  put_line('  fprintf(stderr, "error: need %d process\n", 1 + nb_sync + total_instances);');
+  put_line('  exit(1);');
+  put_line('}');
+  put_line('');
+
+  put_line('// le place manager (va gerer tous les comm place)');
+  put_line('if (rank == RANK_PLACE_MANAGER) { // 0');
+  put_line('  // liste des COMM_PLACES');
+  increase_marging;
   apply SY_LIST_COMM_PLACE($2);
-
+  decrease_marging;
+  put_line('  place_manager(list_cp, 0, mpi_nb_nodes, MPI_COMM_WORLD);');
+  put_line('  MPI_Finalize();');
+  put_line('  exit(0);');
+  put_line('}');
   put_line('');
-  put_line('// affectation a une instance en fonction du rank MPI');
-  put_line('myproc.rank = rank;');
-  put_line('myproc.name = proc_names[instances[rank-1] - 1];');
-  put_line('myproc.where = start[rank-1];');
 
+  put_line('// TODO : sync manager');
   put_line('');
+
+  put_line('// associe une instance a un rank mpi');
+  put_line('instance_t *myinstance;');
+  put_line('int current_rank = 1 + nb_sync; // les processus place_manager et sync_manager');
+  put_line('int total_instances = 0;');
+  put_line('for (i = 0 ; i < NB_PROCESS ; i++) {');
+  put_line('  for (j = 0 ; j < proc[i].nb_instances ; j++) {');
+  put_line('    if (rank == current_rank)');
+  put_line('      myinstance = &proc[i].instances[j];');
+  put_line('    proc[i].instances[j].rank = current_rank;');
+  put_line('    current_rank++;');
+  put_line('    total_instances++;');
+  put_line('  }');
+  put_line('}');
+  put_line('');
+
+  put_line('// TODO : add_link');
+  put_line('');
+
   put_line('MPI_Barrier(MPI_COMM_WORLD);');
-  put_line('run(&myproc);');
+  put_line('run(myinstance);');
   put_line('MPI_Finalize();');
 
   put_line('return 0;');
