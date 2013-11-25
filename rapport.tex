@@ -10,6 +10,30 @@
 \usepackage{pslatex}
 \usepackage{url}
 \usepackage{color}
+\usepackage{amsmath}
+\usepackage{listings}
+
+\lstnewenvironment{codec}
+{ \lstset{
+  language=c,
+  %caption= : #1,
+  %captionpos=t,
+  frame=tb,
+  basicstyle=\small\normalfont\sffamily,
+  xleftmargin=0pt,
+  framexleftmargin=0pt,
+  framexrightmargin=0pt,
+  framexbottommargin=0pt,
+  framextopmargin=0pt,
+  showspaces=false,
+  showstringspaces=false,
+  belowskip=20pt,
+  aboveskip=14pt
+}}
+{}
+
+%\captionsetup[lstlisting]{labelfont=bf,singlelinecheck=off,labelsep=space}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pour les en-têtes de documents SAR
@@ -52,27 +76,209 @@ prenom nom}
 
 \section*{Avant-propos}
 
-Ceci est un modèle de rapport que nous vous suggérons de remplir.
 
 \section{Introduction}
 
-À vous de jouer...
 
 \section{Architecture des programmes générés}
 
-À vous de jouer...
+Le nombre de processus total est nécessaire pour exécuter l'application.
+Un modèle msm permet de définir plusieurs processus qui auront chacun un
+nombre d'instances et dont le point de départ peut varier. Chaque objet
+partagé (synchronisation ou place commune) entre plusieurs processus, est
+géré par un gestionnaire de communications. Il y a un gestionnaire par
+synchro (appelé {\tt sync\_manager}) et un autre gestionnaire (appelé
+{\tt place\_manager}) qui lui aura à sa charge tous les {\tt comm\_places}.
+Toutes ces instances et ces gestionnaires, nous permettent de calculer le
+nombre de processus mpi dont nous aurons besoin :
+
+\begin{align*}
+\mbox{\large$\displaystyle mpi\_nb\_nodes = 1 + nb\_syncs +
+  \sum{process.nb\_instances}$}
+\end{align*}
+
+
+\subsection{Compilation}
+
+Le fichier {\tt anlzed-pn.c} est généré dans le dossier build. Il a été simplifié au
+maximum pour que la génération soit la simple à effectuer. Pour que le programme
+puisse compiler, les fichiers {\tt runtime/runtime.*} sont nécessaires. Enfin, à
+l'exécution il y a simplement besoin du nombre de processus utiles dans mpi (avec
+la formule ci-dessus).
+
+
+\subsection{Structures de données}
+
+Les places et les transitions sont directement retranscrites dans une structure
+C nommée {\tt object\_t}. Chaque objet possède un identifiant unique 
+{\tt uniqid}. Il permet de simplifier les communications MPI afin de n'envoyer 
+qu'un entier. Les objets sont liés entre eux grâce au tableau {\tt next} qui
+contient tous les objets suivants. Les mutex/sémaphores sont instanciés avec
+le type {\tt COMM\_PLACE}, et le nombre de resource disponible est stocké
+dans {\tt nb\_in\_tokens} (seul le {\tt place\_manager} lit et modifie cette valeur).
+Enfin, comme chaque synchronisation est gérée par un autre processus, nous avons
+besoin de connaître son rang mpi.
+
+\begin{codec}
+typedef enum {
+  STATE, LOC_TRANS, COMM, SYNC_TRANS
+} type_e;
+
+struct object_t {
+  char *name;
+  int uniqid; // > 0
+  object_t *next[MAX_LINKS];
+  int size; // size of next
+  type_e ty;
+  int nb_in_tokens; // seulement pour ty = COMM
+  int sync_rank; // seulement pour ty = SYNC, rank du process sync_manager
+};
+\end{codec}
+
+
+Un processus possède une chaîne de caractère, un identifiant (qui n'est pas
+un rang mpi, seuls les instances sont "réellement" exécutées) et un
+ensemble d'instances. Et chaque instance connaît l'objet sur lequel elle
+se trouve.\\
+
+Une structure {\tt sync\_t} est instanciée par gestionnaire (donc par 
+synchronisation). Il est nécessaire de connaître exactement tous les 
+processus ayant accès à cette synchronisation.
+
+\begin{codec}
+typedef struct {
+  int proc_number;
+  instance_t instances[MAX_INSTANCES];
+  int nb_instances;
+  char *name;
+} process_t;
+
+typedef struct {
+  int proc_number;
+  char *name;
+  object_t *where; // sur quel objet l'instance se trouve
+  int rank;
+} instance_t;
+
+typedef struct {
+  process_t proc[MAX_PROCESS];
+  int size; // size of proc
+  object_t *o; // objet SYNC correspondant
+} sync_t;
+\end{codec}
+
+
+\subsection{Instance d'un processus}
+
+Les états {\tt STATE} et {\tt LOC\_TRANS} sont juste des états locaux, on
+peut par exemple simuler un calcul avec un sleep. Seul l'{\tt uniqid} est
+envoyé aux {\tt sync\_manager} et au {\tt place\_manager}. Les communications
+sont donc très simples.
+
+\begin{codec}
+function run(instance_t p) {
+  while (1) {
+    switch (p.ty) {
+      case STATE:
+        // do something...
+        break;
+
+      case LOC_TRANS:
+        // do something...
+        break;
+
+      case SYNC:
+        send(p.where.uniqid, WAIT_SYNCHRO) to p.where.sync_rank;
+        // wait...
+        recv(SYNCHRONIZED) from p.where.sync_rank;
+        break;
+
+      case COMM_PLACE:
+        send(p.where.uniqid, NEED_LOCK) to place_manager;
+        recv(CONTINUE) from place_manager;
+        // do something...
+        send(p.where.uniqid, UNLOCK) to place_manager;
+        break;
+    }
+
+    p.where = choose(p.where.next);
+  }
+}
+\end{codec}
+
+
+\subsection{Gestionnaire des {\tt comm\_places}}
+
+Les gestionnaires sont en attente bloquante de communications par les
+instances. Si aucune resource n'est disponible, alors les processus
+attendront jusqu'à ce qu'un autre en libère une. Il n'y a pas de FIFO,
+mais pour éviter les famines, on prend le premier processus {\tt next}
+à partir du processus {\tt source} ayant envoyé le unlock 
+($next = (source + n ) ~ mod ~ nb\_processus $)
+
+\begin{codec}
+function place_manager(object_t list_comm_places[NB]) {
+  wait[] = {0...0};
+
+  while (1) {
+    recv(uniqid, request) from source;
+    semaphore = search(list_comm_places, uniqid);
+
+    if (request == NEED_LOCK) {
+      if (semaphore.nb_in_tokens > 0) {
+        semaphore.nb_in_tokens--;
+        send(CONTINUE) to source;
+        wait[source] = 0;
+      }
+      else {
+        wait[source] = uniqid;
+      }
+    } 
+    else if (request == UNLOCK) {
+      semaphore.nb_in_tokens++;
+      wait[source] = 0;
+
+      next = <get the first process which wait on uniqid>;
+      if (next != -1) {
+        send(CONTINUE) to next;
+        semaphore.nb_in_tokens--;
+      }
+    }
+  }
+}
+\end{codec}
+
+\subsection{Gestionnaire des synchronisations}
+
+Rien de compliqué, il vérifie seulement si tous les processus sont
+en attente d'une synchronisation.
+
+\begin{codec}
+function sync_manager(sync_t sync) {
+  wait[sync.o.size] = {0..0};
+
+  while (1) {
+    recv(uniqid, request) from source;
+
+    if (request == WAIT_SYNCHRO) {
+      wait[source] = 1;
+
+      if (wait == {1..1})
+        send(SYNCHRONIZED) to every sync.proc[i];
+    }
+  }
+}
+\end{codec}
+
 
 \section{Architecture du générateur de code}
 
-À vous de jouer...
 
 \section{Validation du générateur de code}
 
-À vous de jouer...
 
 \section{Conclusion}
 
-À vous de jouer...
 
 \vfill
 \eject
