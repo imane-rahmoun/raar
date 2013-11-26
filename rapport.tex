@@ -36,13 +36,13 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Pour les en-têtes de documents SAR
+% Pour les en-tï¿½tes de documents SAR
 \def\HeaderSar{
 \Huge{Master UPMC Sciences et technologies,}\\
 \Huge{mention informatique}\\
 \Huge{Sp\'ecialit\'e \textsf{Syst\`emes et Applications R\'eparties}}
 \vskip 0.5cm
-\huge{Réalisation Assistée d'Applications Réparties}
+\huge{Rï¿½alisation Assistï¿½e d'Applications Rï¿½parties}
 \begin{figure}[h]
  $$\psfig{figure=logo-sar.pdf,scale=0.7}$$
 \end{figure}
@@ -58,17 +58,16 @@
 \def\msm{\textsf{MSM}}
 
 \title{\HeaderSar
-Projet - écriture d'un générateur de code
+Projet - ï¿½criture d'un gï¿½nï¿½rateur de code
 }
-\author{prenom nom,
-prenom nom,
-prenom nom,
-prenom nom,
-prenom nom,
-prenom nom}
+\author{
+Imane Rahmoun,
+Clement Delpech,
+Joel Poudroux,
+Brahim Jbari,
+Raphael Baudry}
 \begin{document}
 \maketitle
-
 \vskip 2cm
 \tableofcontents
 \vfill
@@ -78,17 +77,21 @@ prenom nom}
 
 
 \section{Introduction}
+L'objectif du projet est d'ecrire un generateur de code C/MPI Ã  partir d'un 
+reseaux de Petri place/transition preanalyse,qui est  un moyen 
+de modelisation du comportement des systemes dynamiques Ã  evenements discrets,et 
+qui permet aussi de verifier plusieurs proprietes du systeme au niveau de la specification initial et de l implementation.
+Pour cela nous utilisons l'outil qui aide Ã  la production de moteur de transformation MetaScribe,
+ce dernier se base sur un  patrons semantique et un patron syntaxique apres decodage du modele.
+\section{Architecture des programmes gï¿½nï¿½rï¿½s}
 
-
-\section{Architecture des programmes générés}
-
-Le nombre de processus total est nécessaire pour exécuter l'application.
-Un modèle msm permet de définir plusieurs processus qui auront chacun un
-nombre d'instances et dont le point de départ peut varier. Chaque objet
-partagé (synchronisation ou place commune) entre plusieurs processus, est
-géré par un gestionnaire de communications. Il y a un gestionnaire par
-synchro (appelé {\tt sync\_manager}) et un autre gestionnaire (appelé
-{\tt place\_manager}) qui lui aura à sa charge tous les {\tt comm\_places}.
+Le nombre de processus total est nï¿½cessaire pour exï¿½cuter l'application.
+Un modï¿½le msm permet de dï¿½finir plusieurs processus qui auront chacun un
+nombre d'instances et dont le point de dï¿½part peut varier. Chaque objet
+partagï¿½ (synchronisation ou place commune) entre plusieurs processus, est
+gï¿½rï¿½ par un gestionnaire de communications. Il y a un gestionnaire par
+synchro (appelï¿½ {\tt sync\_manager}) et un autre gestionnaire (appelï¿½
+{\tt place\_manager}) qui lui aura ï¿½ sa charge tous les {\tt comm\_places}.
 Toutes ces instances et ces gestionnaires, nous permettent de calculer le
 nombre de processus mpi dont nous aurons besoin :
 
@@ -100,24 +103,24 @@ nombre de processus mpi dont nous aurons besoin :
 
 \subsection{Compilation}
 
-Le fichier {\tt anlzed-pn.c} est généré dans le dossier build. Il a été simplifié au
-maximum pour que la génération soit la simple à effectuer. Pour que le programme
-puisse compiler, les fichiers {\tt runtime/runtime.*} sont nécessaires. Enfin, à
-l'exécution il y a simplement besoin du nombre de processus utiles dans mpi (avec
+Le fichier {\tt anlzed-pn.c} est gï¿½nï¿½rï¿½ dans le dossier build. Il a ï¿½tï¿½ simplifiï¿½ au
+maximum pour que la gï¿½nï¿½ration soit la simple ï¿½ effectuer. Pour que le programme
+puisse compiler, les fichiers {\tt runtime/runtime.*} sont nï¿½cessaires. Enfin, ï¿½
+l'exï¿½cution il y a simplement besoin du nombre de processus utiles dans mpi (avec
 la formule ci-dessus).
 
 
-\subsection{Structures de données}
+\subsection{Structures de donnï¿½es}
 
 Les places et les transitions sont directement retranscrites dans une structure
-C nommée {\tt object\_t}. Chaque objet possède un identifiant unique 
+C nommï¿½e {\tt object\_t}. Chaque objet possï¿½de un identifiant unique 
 {\tt uniqid}. Il permet de simplifier les communications MPI afin de n'envoyer 
-qu'un entier. Les objets sont liés entre eux grâce au tableau {\tt next} qui
-contient tous les objets suivants. Les mutex/sémaphores sont instanciés avec
-le type {\tt COMM\_PLACE}, et le nombre de resource disponible est stocké
+qu'un entier. Les objets sont liï¿½s entre eux grï¿½ce au tableau {\tt next} qui
+contient tous les objets suivants. Les mutex/sï¿½maphores sont instanciï¿½s avec
+le type {\tt COMM\_PLACE}, et le nombre de resource disponible est stockï¿½
 dans {\tt nb\_in\_tokens} (seul le {\tt place\_manager} lit et modifie cette valeur).
-Enfin, comme chaque synchronisation est gérée par un autre processus, nous avons
-besoin de connaître son rang mpi.
+Enfin, comme chaque synchronisation est gï¿½rï¿½e par un autre processus, nous avons
+besoin de connaï¿½tre son rang mpi.
 
 \begin{codec}
 typedef enum {
@@ -135,15 +138,14 @@ struct object_t {
 };
 \end{codec}
 
-
-Un processus possède une chaîne de caractère, un identifiant (qui n'est pas
-un rang mpi, seuls les instances sont "réellement" exécutées) et un
-ensemble d'instances. Et chaque instance connaît l'objet sur lequel elle
+Un processus possï¿½de une chaï¿½ne de caractï¿½re, un identifiant (qui n'est pas
+un rang mpi, seuls les instances sont "rï¿½ellement" exï¿½cutï¿½es) et un
+ensemble d'instances. Et chaque instance connaï¿½t l'objet sur lequel elle
 se trouve.\\
 
-Une structure {\tt sync\_t} est instanciée par gestionnaire (donc par 
-synchronisation). Il est nécessaire de connaître exactement tous les 
-processus ayant accès à cette synchronisation.
+Une structure {\tt sync\_t} est instanciï¿½e par gestionnaire (donc par 
+synchronisation). Il est nï¿½cessaire de connaï¿½tre exactement tous les 
+processus ayant accï¿½s ï¿½ cette synchronisation.
 
 \begin{codec}
 typedef struct {
@@ -170,10 +172,10 @@ typedef struct {
 
 \subsection{Instance d'un processus}
 
-Les états {\tt STATE} et {\tt LOC\_TRANS} sont juste des états locaux, on
+Les ï¿½tats {\tt STATE} et {\tt LOC\_TRANS} sont juste des ï¿½tats locaux, on
 peut par exemple simuler un calcul avec un sleep. Seul l'{\tt uniqid} est
-envoyé aux {\tt sync\_manager} et au {\tt place\_manager}. Les communications
-sont donc très simples.
+envoyï¿½ aux {\tt sync\_manager} et au {\tt place\_manager}. Les communications
+sont donc trï¿½s simples.
 
 \begin{codec}
 function run(instance_t p) {
@@ -211,9 +213,9 @@ function run(instance_t p) {
 
 Les gestionnaires sont en attente bloquante de communications par les
 instances. Si aucune resource n'est disponible, alors les processus
-attendront jusqu'à ce qu'un autre en libère une. Il n'y a pas de FIFO,
-mais pour éviter les famines, on prend le premier processus {\tt next}
-à partir du processus {\tt source} ayant envoyé le unlock 
+attendront jusqu'ï¿½ ce qu'un autre en libï¿½re une. Il n'y a pas de FIFO,
+mais pour ï¿½viter les famines, on prend le premier processus {\tt next}
+ï¿½ partir du processus {\tt source} ayant envoyï¿½ le unlock 
 ($next = (source + n ) ~ mod ~ nb\_processus $)
 
 \begin{codec}
@@ -250,7 +252,7 @@ function place_manager(object_t list_comm_places[NB]) {
 
 \subsection{Gestionnaire des synchronisations}
 
-Rien de compliqué, il vérifie seulement si tous les processus sont
+Rien de compliquï¿½, il vï¿½rifie seulement si tous les processus sont
 en attente d'une synchronisation.
 
 \begin{codec}
@@ -271,10 +273,10 @@ function sync_manager(sync_t sync) {
 \end{codec}
 
 
-\section{Architecture du générateur de code}
+\section{Architecture du gï¿½nï¿½rateur de code}
 
 
-\section{Validation du générateur de code}
+\section{Validation du gï¿½nï¿½rateur de code}
 
 
 \section{Conclusion}
@@ -283,5 +285,5 @@ function sync_manager(sync_t sync) {
 \vfill
 \eject
 \section*{Annexe 1: xxx}
-Si vous le jugez nécessaire...
+Si vous le jugez nï¿½cessaire...
  \end{document}
