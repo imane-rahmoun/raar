@@ -274,6 +274,33 @@ function sync_manager(sync_t sync) {
 
 
 \section{Architecture du g�n�rateur de code}
+\subsection {Description du formalisme dans le langage MSF:}
+
+le formalisme  ('ANLZED_PN') que nous construisons est composé de 5 types de                 
+nœuds (PROCESS, STT_PLACE, COMM_PLACE ,LOC_TRANS ,SYNC_TRANS ) et de 3 type de liens ( BELONG,ARC,COMM_ARC),
+Il comporte un seul attribut global dfinissant le nom du modèle,cet attribut est une chaîne de caractères et un seul operateur pour decrire les instances
+(construction_list) .
+
+                                                                                         
+Tous noeuds possèdent l'attributs nom (chaîne de caractères) ,le noeud Process possede en plus l'attribut instance de type expression,
+le noeud COM-PLACE possede en plus l'attribut NB-IN-TOKENS (valeur entiere indiquant le marquage intial) .
+
+les noeuds sont connectées au moyens d’arcs qui peuvent être entrants ou sortants.
+                                                                                         
+L’ensemble de ces information constitue les fichier anlzed-pn-node.msf et anlzed-pn-link.msf de la description MSF.    
+
+
+
+\subsection {Description du patron sémantique:}
+
+                                                                                            
+Le fichier principal du patron sémantique generator-main.mssm que nous définissons déclare les cons-            
+tructeurs prédéfinis et déclare cinque règles dont une principale. quatre arbre sta-
+tique décrivant les constructions associées à la référence d’un objet du réseau de Petri.
+Pour définir le patron sémantique, nous avons également écrit trois  fichiers  : un
+ pour l’arbre sémantique statique : rule_tree.mssm, 
+deux autreq un pour la règle principale : rule_do_the_work.mssm,
+et un pour les autres regles : rule_create_list_objects.mssm.
 
 
 \section{Validation du g�n�rateur de code}
